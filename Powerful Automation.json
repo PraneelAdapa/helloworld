@@ -1,0 +1,235 @@
+{
+  "name": "Powerful Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        -144
+      ],
+      "id": "305344d4-3c3f-4585-9584-4a683932fe8b",
+      "name": "Telegram Trigger",
+      "webhookId": "b4f40675-2d4e-4055-ac30-b43793fd9ebb",
+      "credentials": {
+        "telegramApi": {
+          "id": "26fwp97SkOGiMs7s",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log input to understand structure (optional)\nconsole.log(JSON.stringify($json, null, 2));\n\nif (!$json.choices || !$json.choices[0] || !$json.choices[0].message || !$json.choices[0].message.content) {\n  return [{ message: \"No AI response found\", booking: null }];\n}\n\nconst text = $json.choices[0].message.content;\n\n// Extract JSON between --- and ---\nconst jsonMatch = text.match(/---\\s*([\\s\\S]*?)\\s*---/);\n\nif (!jsonMatch) {\n  return [{ message: text, booking: null }];\n}\n\nconst jsonString = jsonMatch[1];\n\nlet bookingData;\ntry {\n  bookingData = JSON.parse(jsonString);\n} catch (e) {\n  bookingData = null;\n}\n\nreturn [{ message: text, booking: bookingData }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -160
+      ],
+      "id": "f1512d8c-7469-470c-81d3-6d439161e134",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "9e61dd32-63b9-466e-b9f2-fb1297bf1741"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "TEXT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0a29a136-1c62-4825-9f48-e55dfc8be204",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VOICE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -32,
+        -144
+      ],
+      "id": "0a48d34a-f9f2-4bee-aa88-ffa9c4d3e768",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=- Message:  {{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "680d278d-a645-42f7-ba00-11fd06fc5207",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        240,
+        32
+      ],
+      "id": "2159731d-807c-4704-bc5d-a1f2a6125951",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "MdiCTqyEWaEs2EVQ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        -160
+      ],
+      "id": "d1a954f0-cd82-429c-a4a3-2e0207f482ba",
+      "name": "Send a text message",
+      "webhookId": "39269e3b-8193-4da0-9bc0-ddea2e3f7ead",
+      "credentials": {
+        "telegramApi": {
+          "id": "26fwp97SkOGiMs7s",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c0c30563-dac8-4914-8718-877290f46297",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "02740d769d14dd9cbde3e6b113ba855f600bae08da3ee1a454a4291472d34696"
+  },
+  "id": "IasKaxu95LApF33m",
+  "tags": []
+}
