@@ -1,0 +1,2204 @@
+{
+  "name": "PERSONAL ASSISSTANT TURBO",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        432
+      ],
+      "id": "b6c7676d-1b12-495d-abca-d44c94027163",
+      "name": "Telegram Trigger",
+      "webhookId": "1fe7af9d-e1f6-4877-ad34-6de06257b495",
+      "credentials": {
+        "telegramApi": {
+          "id": "EefH4nenOajwXCrD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=- Message:  {{ $json.message.text }}\n- voice: {{ $json.user_input }}",
+        "options": {
+          "systemMessage": "=your name is pranav and you are born on 17 august 2009 \nyou are a personal assisstant with formal language but not too serious but slightly funny and talkative\n\nalso you are a research assistant agent. you have wikipedia, Hacker Nwes API, and serp API at your disposal.\n\nto answer the user's question, first search wikipedia . ifyou can't find your answer there, then search articles using Hacker Nwes API. If that doesn't wrok either use serp API to answer the user's question.\n\n{{ $json.message.text }}\ngo through the contacts database before executing \ndate/time is : {{ $now }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        128,
+        448
+      ],
+      "id": "997c758c-1aaf-4474-95c7-4ba1e364fb08",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        832
+      ],
+      "id": "ab88ba99-c556-4038-87c2-f1c4567b6493",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "646881db-15f9-47d0-b27e-c17b9ada664d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "113313ff-addf-4a6d-8eca-4d3d847e7905",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -96,
+        432
+      ],
+      "id": "2486de94-31b0-48c3-9b57-95823ae93a39",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        96
+      ],
+      "id": "8fe0f6f1-0f1c-42c2-9cb4-08e3f1602edf",
+      "name": "Get a file",
+      "webhookId": "c4de5a39-e448-4cfe-b239-3439af04025c",
+      "credentials": {
+        "telegramApi": {
+          "id": "EefH4nenOajwXCrD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "b1285cef21414b90b3b7ad277d896aa7"
+            },
+            {
+              "name": "content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "861f2d96-69d8-47b1-ba74-6cb7a449f951",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/transcript",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "b1285cef21414b90b3b7ad277d896aa7"
+            },
+            {
+              "name": "content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "audio_url",
+              "value": "={{ $json.upload_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -192,
+        96
+      ],
+      "id": "7610b880-b53a-41f7-9b3d-612bcd051bba",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.assemblyai.com/v2/transcript/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "b1285cef21414b90b3b7ad277d896aa7"
+            },
+            {
+              "name": "content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        96
+      ],
+      "id": "531a8dd6-622d-4687-b563-5e53b6c0e656",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "amount": 0.5
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        96
+      ],
+      "id": "e1b740e9-b922-43ef-ac5a-121615df5d7e",
+      "name": "Wait",
+      "webhookId": "8c024fc4-9d1f-4e10-ba24-df2f08046472"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e403af9c-ecaa-4500-bfcc-fa9da4a24cbc",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        96
+      ],
+      "id": "9abb85f7-339e-4460-9fea-8b18d359352f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        448
+      ],
+      "id": "79a96081-dbe5-45f6-af91-b23abeeaf3e5",
+      "name": "Send a text message1",
+      "webhookId": "aec3a5f4-e89f-4bf3-8f26-3b475ff0d94b",
+      "credentials": {
+        "telegramApi": {
+          "id": "EefH4nenOajwXCrD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b5957531-25a2-4770-9895-530e4671df05",
+              "name": "user_input",
+              "value": "={{$json[\"text\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        80
+      ],
+      "id": "f701bc87-9523-4a40-a666-3b60e4bcf14b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "senderName": "Praneel",
+          "replyTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Send_Replies_To', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        1024
+      ],
+      "id": "2a9df44a-6439-4889-9423-17b9b98bd0e0",
+      "name": "Send a message in Gmail",
+      "webhookId": "e019e796-2fb7-4cec-afaa-5f38fd8cd2ff",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GcAaDdaiYWXejUBN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok",
+          "mode": "list",
+          "cachedResultName": "Contacts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -1024,
+        832
+      ],
+      "id": "c12b8657-8170-4e4e-aded-0f5546820e33",
+      "name": "Contact Database",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yD1v588D25JAGPdE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        1024
+      ],
+      "id": "b3bb03d7-6f9a-4f19-9782-942e5236d9d4",
+      "name": "Get many messages in Gmail",
+      "webhookId": "c0151ae7-63e5-4387-b768-aad600146b00",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GcAaDdaiYWXejUBN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "useDefaultReminders": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Use_Default_Reminders', ``, 'boolean') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "sendUpdates": "all",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        1168
+      ],
+      "id": "74f197bf-af0d-43bb-b203-a4151d22e339",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        1008
+      ],
+      "id": "23b76a31-f43a-41b9-b341-b2f648d59ea6",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        1168
+      ],
+      "id": "3ff4b9ab-d29c-4e4c-8cc6-b1001ac25ab6",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "useDefaultReminders": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Use_Default_Reminders', ``, 'boolean') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        1168
+      ],
+      "id": "b6da88cc-fdf6-4f63-b502-d6f9a9a02fa0",
+      "name": "Update an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        1008
+      ],
+      "id": "a3909618-c003-4f1d-80fc-04e8617aeac8",
+      "name": "Get an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {
+          "receivedAfter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Received_After', ``, 'string') }}",
+          "receivedBefore": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Received_Before', ``, 'string') }}",
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        1168
+      ],
+      "id": "42cb2151-ff33-4585-aed6-08036b3c10fc",
+      "name": "Get many messages in Gmail1",
+      "webhookId": "5a49e81d-95ed-4005-a11b-9f505b2baefd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GcAaDdaiYWXejUBN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        1168
+      ],
+      "id": "c23489e2-f785-4adb-82ed-5aa2f851b5a9",
+      "name": "Reply to a message in Gmail",
+      "webhookId": "cfc7ea65-3388-420d-91cd-a4ec5a194a63",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GcAaDdaiYWXejUBN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        832
+      ],
+      "id": "ac3fee37-0740-41e0-957b-68c47a099950",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "praneeladapa16@gmail.com",
+          "mode": "list",
+          "cachedResultName": "praneeladapa16@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        1008
+      ],
+      "id": "312d9abd-383e-478c-a249-9411ab3c396c",
+      "name": "Create an event in Google Calendar1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "e8gqsVZFULo7Bxrv",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        512,
+        1024
+      ],
+      "id": "21985d4e-d1fd-4ea2-a9fb-8853c092260b",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        368,
+        1184
+      ],
+      "id": "9aaef1bc-a9a7-40c7-9831-a908a13f59c8",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "9SqJts54LRIk2kEm",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "all",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "additionalFields": {
+          "keyword": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Keyword', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.hackerNewsTool",
+      "typeVersion": 1,
+      "position": [
+        368,
+        1024
+      ],
+      "id": "7987c7f1-9db8-4e8d-b57f-9eb227a23d0b",
+      "name": "Get many items in Hacker News"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        736,
+        1008
+      ],
+      "id": "aea4d85d-641e-4443-ab58-403f122a1919",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "you are an ai agent tool use this tool to update ,create, get many events , delete events from the calendar and more",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant you are an ai agent tool use this tool to update ,create, get many events , delete events from the calendar and more \n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        832
+      ],
+      "id": "689d17fe-86be-4756-9649-39f7718de581",
+      "name": "Calendar agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        1024
+      ],
+      "id": "77b73daa-5c7f-4c73-bc07-708c30271687",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "you are a smart ai agent . you are a gmail tool use this tool to update emails ,delete emails, send emails and more, from gmail.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant you are a smart ai agent . you are a gmail tool use this tool to update emails ,delete emails, send emails and more, from gmail.\n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        848
+      ],
+      "id": "c78477e1-8560-4b05-9577-929c178951be",
+      "name": "Gmail Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok",
+          "mode": "list",
+          "cachedResultName": "Contacts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nn2T5bRZcxuspRl37kM74cj7ZnP7pV2VwOnAFNmYqok/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -32,
+        1024
+      ],
+      "id": "e2d3a7cb-61dc-4eca-b95c-4fb18b855d6d",
+      "name": "Contact Database1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yD1v588D25JAGPdE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1024
+      ],
+      "id": "439a8b3f-5dbe-4a5c-98b7-68e8779b6ab6",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Google Calendar\n**this agent can \n- create events\n- delete events\n- update events\n- get events\n- and more** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 592,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        768
+      ],
+      "id": "51b3ba2d-c7b6-41a4-87d8-700941205514",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Gmail ",
+        "height": 592,
+        "width": 624,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        768
+      ],
+      "id": "aac9c5bd-cee0-4682-845e-6ddfe294e7aa",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Google Search Tool \n",
+        "height": 592,
+        "width": 512,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        112,
+        768
+      ],
+      "id": "bd6acf66-0c43-4594-b6c7-450e3c082d3e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Voice Transcribing Workflow",
+        "height": 320,
+        "width": 1776,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        0
+      ],
+      "id": "0340d486-273c-49f0-b27c-c032224d1ca6",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## The AI Agent Brain Parts",
+        "height": 208,
+        "width": 544,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        768
+      ],
+      "id": "18d268ed-e84d-485c-a05b-1c0578e2daf8",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## THE BRAIN  {CPU}",
+        "height": 272,
+        "width": 368,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        368
+      ],
+      "id": "40bf8659-9b4d-4e3b-be9f-dd852dcb4234",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## SEND MESSAGE",
+        "height": 272,
+        "width": 352,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        368
+      ],
+      "id": "fec76603-e8f4-433d-89bb-a53f830e952d",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## SWITCH",
+        "height": 272,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        368
+      ],
+      "id": "061e0dc6-48a8-4c8c-b9fe-67f9fc461d0c",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## RECEIVE MESSAGE",
+        "height": 272,
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        368
+      ],
+      "id": "f4c934d3-e7e6-4bd1-872d-6f02e9bbe717",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        1184
+      ],
+      "id": "52f09f05-eced-4b4a-a23e-ecdd32726c8f",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "google_maps search in SerpApi use this to search for location in the world and places",
+        "operation": "google_maps",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "type": "place",
+        "ll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('GPS_Coordinates__ll_', ``, 'string') }}",
+        "additionalFields": {
+          "zero_trace": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ZeroTrace_Mode__zero_trace_', ``, 'boolean') }}"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        1184
+      ],
+      "id": "1cafa0c5-dd3e-4c1f-90d4-41968c15481c",
+      "name": "google maps",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "google_maps_directions search in SerpApi use this for google maps and directions to calculate distance .",
+        "operation": "google_maps_directions",
+        "start_addr": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Starting_Point_Address__start_addr_', ``, 'string') }}",
+        "end_addr": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Ending_Point_Address__end_addr_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        1184
+      ],
+      "id": "4ef2016c-e8b2-4c33-8342-bafc6242e83c",
+      "name": "directions",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_maps_reviews",
+        "data_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Data_ID__data_id_', ``, 'string') }}",
+        "place_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Place_ID__place_id_', ``, 'string') }}",
+        "additionalFields": {
+          "sort_by": "ratingHigh"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        1184
+      ],
+      "id": "d094ce65-9fb3-4e2d-b9c8-400cb152ea33",
+      "name": "google maps reviews",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "##  Google Maps\n",
+        "height": 352,
+        "width": 544,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        1008
+      ],
+      "id": "e1c226ef-44ad-400e-bad0-084ce765fdf9",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        976
+      ],
+      "id": "c4b60e2f-c168-4a43-9b47-8c5a57a28786",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "google search in SerpApi use this tool for searching the web.",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "location": "={{ $fromAI('Location__location_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        1008
+      ],
+      "id": "1ab1a584-65f7-432c-9da9-9aa8cfa0f161",
+      "name": "Google search",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_images",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {
+          "location": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Location__location_', ``, 'string') }}",
+          "as_dt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Include_Exclude_Site__as_dt_', ``, 'string') }}",
+          "as_sitesearch": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Site_Search__as_sitesearch_', ``, 'string') }}"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        1008
+      ],
+      "id": "1d438f51-3c8e-4d73-94bc-3072d63f37e0",
+      "name": "Google_images search in SerpApi",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "duckduckgo",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {
+          "safe": "-1"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        1184
+      ],
+      "id": "8b35e3ad-0135-4610-b51a-8a4ebc6256ad",
+      "name": "text reply search",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "ebay",
+        "_nkw": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query___nkw_', ``, 'string') }}",
+        "ebay_domain": "ebay.co.uk",
+        "additionalFields": {
+          "buying_format": "BO",
+          "_udlo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Price_Low___udlo_', ``, 'number') }}",
+          "_udhi": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Price_High___udhi_', ``, 'number') }}",
+          "_sop": "12",
+          "_dmd": "1",
+          "no_cache": false
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        1184
+      ],
+      "id": "ec2f2247-5387-48dd-b43e-e568e48acd10",
+      "name": "Ebay search",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_trends",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {
+          "geo": "",
+          "data_type": "TIMESERIES",
+          "date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date__date_', ``, 'string') }}"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        1008
+      ],
+      "id": "6466ea1f-db6b-49d2-a086-4984d448b431",
+      "name": "Trends - Google",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_lens",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Image_URL__url_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        1184
+      ],
+      "id": "740b8bdc-f07c-493b-8459-ae849d31013f",
+      "name": "Google_lens search in SerpApi",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_scholar",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {
+          "cites": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Cited_By__cites_', ``, 'string') }}",
+          "as_ylo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Year_From__as_ylo_', ``, 'number') }}",
+          "as_yhi": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Year_Until__as_yhi_', ``, 'number') }}",
+          "num": 10,
+          "as_sdt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Type_Filter__as_sdt_', ``, 'string') }}",
+          "filter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Results_Filtering__filter_', ``, 'boolean') }}",
+          "as_rr": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        1008
+      ],
+      "id": "2dad40f9-a485-4db9-aa92-21f4d9fab44b",
+      "name": "Google_scholar search in SerpApi",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "google search in SerpApi use this tool for searching the web.",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "location": "={{ $fromAI('Location__location_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        496,
+        1184
+      ],
+      "id": "ca59d278-c8b7-434b-a758-484e33f904f7",
+      "name": "Google search1",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Google search 2.0 \n",
+        "height": 592,
+        "width": 832,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        768
+      ],
+      "id": "b9960b57-2436-48bc-8217-5f1ebbd6842a",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "operation": "google_flights",
+        "departure_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Departure_airport_code___location_kgmid__departure_id_', ``, 'string') }}",
+        "arrival_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Arrival_airport_code___location_kgmid__arrival_id_', ``, 'string') }}",
+        "outbound_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Outbound_Date__outbound_date_', ``, 'string') }}",
+        "return_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_Date__return_date_', ``, 'string') }}",
+        "additionalFields": {
+          "currency": "GBP",
+          "travel_class": 1,
+          "show_hidden": false,
+          "adults": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Number_of_Adults__adults_', ``, 'number') }}",
+          "children": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Number_of_Children__children_', ``, 'number') }}",
+          "stops": 2,
+          "exclude_airlines": "",
+          "include_airlines": "",
+          "max_price": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Max_price__max_price_', ``, 'string') }}",
+          "return_times": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_times__return_times_', ``, 'string') }}",
+          "layover_duration": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Layover_duration__layover_duration_', ``, 'string') }}",
+          "max_duration": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Max_duration__max_duration_', ``, 'string') }}"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1632
+      ],
+      "id": "adaaeaaa-d6bd-4804-b131-e67560d82ba7",
+      "name": "Google Flights",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_news",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {
+          "topic_token": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Topic_Token__topic_token_', ``, 'string') }}",
+          "story_token": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Story_Token__story_token_', ``, 'string') }}",
+          "so": "0"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1760
+      ],
+      "id": "10a9360d-c21d-4b30-b98f-537f4ac01420",
+      "name": "News",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_product",
+        "product_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Product_ID__product_id_', ``, 'string') }}",
+        "additionalFields": {
+          "location": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Location__location_', ``, 'string') }}",
+          "google_domain": "google.com",
+          "specs": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fetch_Specs_Results__specs_', ``, 'boolean') }}",
+          "reviews": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        1632
+      ],
+      "id": "5fb829a6-995e-4a46-8efe-e1bb0e51117f",
+      "name": "Google Products",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_shopping",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "location": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Location__location_', ``, 'string') }}",
+        "additionalFields": {
+          "tbs": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Advanced_Search_Parameters__tbs_', ``, 'string') }}",
+          "direct_link": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1632
+      ],
+      "id": "0b5448e9-cd7a-4001-80f1-848d2b1fdc5c",
+      "name": "shopping with google",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "google_videos",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "location": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Location__location_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1760
+      ],
+      "id": "52bfc9e2-9aff-47c9-a9e5-831135a2bdba",
+      "name": "vidoes",
+      "credentials": {
+        "serpApi": {
+          "id": "K1lrJhPFmz8gQUnQ",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        1632
+      ],
+      "id": "bf8fc5dc-f8ee-4a16-8dd8-25793f1c1a44",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8B7Dz4koykSl16Tg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Other Google  Search ",
+        "height": 528,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        1392
+      ],
+      "id": "96716e54-837c-4ea1-882d-bfbb482b0ffb",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "toolDescription": "you are a smart ai agent you are the search tool on google  you can use the tools below to search the web and more on google .",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant you are a smart ai agent you are the search tool on google  you can use the tools below to search the web and more on google .   also you are a research assistant agent. you have wikipedia, Hacker Nwes API, and serp API at your disposal.\n\nto answer the user's question, first search wikipedia . ifyou can't find your answer there, then search articles using Hacker Nwes API. If that doesn't wrok either use serp API to answer the user's question.\n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        848
+      ],
+      "id": "18f5dfc3-fe7d-40e6-99d5-c2ce1694f2b9",
+      "name": "Search agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "your are a smart ai agent, you are a google maps tool , you can search places , calculate distances , give reviews and more.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant your are a smart ai agent, you are a google maps tool , you can search places , calculate distances , give reviews and more.\n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1088,
+        1040
+      ],
+      "id": "c45eb07f-50d5-4586-9e36-f0c322ffa410",
+      "name": "Google Maps agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "you are a smart google other search tool you have : flights tool, google videos, google news ,  google shopping tool, and google products tool. use them accordingly.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant you are a smart google other search tool you have : flights tool, google videos, google news ,  google shopping tool, and google products tool. use them accordingly.\nuse these tools to get correct information about the query.\n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        1472
+      ],
+      "id": "8f21cd3f-9217-452e-84b3-51f13e5afaf9",
+      "name": "other google agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "you are a smart ai agent . you are a google search tool who can search for google lenses , google images, google search, Ebay search , Trends  search , scholar search, and more .",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant you are a smart ai agent . you are a google search tool who can search for google lenses , google images, google search, Ebay search , Trends  search , scholar search, and more .\n\ndate is: {{ $now.format('yyyy-MM-dd') }}\ntime is : {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        816
+      ],
+      "id": "aa07d635-b796-4dbc-9048-d27ea33c325e",
+      "name": "other search agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Database": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many items in Hacker News": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Database1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Search agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Google Maps agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "directions": {
+      "ai_tool": [
+        [
+          {
+            "node": "Google Maps agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "google maps": {
+      "ai_tool": [
+        [
+          {
+            "node": "Google Maps agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "google maps reviews": {
+      "ai_tool": [
+        [
+          {
+            "node": "Google Maps agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google_images search in SerpApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends - Google": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google search": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google_scholar search in SerpApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "text reply search": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ebay search": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google_lens search in SerpApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "other search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google search1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Search agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Flights": {
+      "ai_tool": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "shopping with google": {
+      "ai_tool": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Products": {
+      "ai_tool": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "News": {
+      "ai_tool": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vidoes": {
+      "ai_tool": [
+        [
+          {
+            "node": "other google agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Maps agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "other google agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "other search agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4cbaee46-343b-4b4a-91bd-e7e772f7b3e3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a0e7799f1b15c96ffb3a6abaa1660040de9172b6163767add2496434a6138d0"
+  },
+  "id": "OyQlyBet2oUjLfhi",
+  "tags": []
+}
